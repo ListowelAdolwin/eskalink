@@ -16,7 +16,7 @@ A comprehensive RESTful API for job posting and application management system bu
 
 - **Framework**: Spring Boot
 - **Language**: Java
-- **Database**: MySQL (Production), H2 (Testing)
+- **Database**: PostgreSQL (Production), H2 (Testing)
 - **Security**: Spring Security with JWT
 - **File Storage**: AWS S3
 - **Email**: Spring Mail with SMTP
@@ -33,7 +33,7 @@ A comprehensive RESTful API for job posting and application management system bu
 
 - Java 21 or higher
 - Maven 3.6+
-- MySQL 8.0+ (for production)
+- PostgreSQL (for production)
 - AWS Account (for S3 file upload)
 - SMTP Email Account (Gmail recommended)
 
@@ -51,7 +51,7 @@ Create an `application-dev.properties` file in `src/main/resources/` or set the 
 
 ```properties
 # Database Configuration
-DATABASE_URL=jdbc:mysql://localhost:3306/eskalink_db
+DATABASE_URL=jjdbc:postgresql://localhost:5432/eskalink_db
 DATABASE_USERNAME=root
 DATABASE_PASSWORD=your_password
 
@@ -77,7 +77,7 @@ FRONTEND_URL=http://localhost:3000
 
 ### 3. Database Setup
 
-Create MySQL database:
+Create PostgreSQL database:
 ```sql
 CREATE DATABASE eskalate_db;
 ```
@@ -199,7 +199,7 @@ mvn test
 ## Deployment
 
 ### Environment Preparation
-1. Set up production database (MySQL)
+1. Set up production database (PostgreSQL)
 2. Configure AWS S3 bucket
 3. Set up SMTP email service
 4. Generate strong JWT secret
