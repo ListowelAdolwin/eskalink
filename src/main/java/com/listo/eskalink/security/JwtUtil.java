@@ -1,7 +1,9 @@
 package com.listo.eskalink.security;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -26,8 +28,12 @@ public class JwtUtil {
     @Value("${jwt.verification.expiration}")
     private Long verificationExpiration;
 
+    private static final String TYPE_CLAIM = "type";
+    private static final String USER_ID_CLAIM = "userId";
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String extractUsername(String token) {
@@ -45,11 +51,8 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            JwtParser parser = Jwts.parser().verifyWith(getSigningKey()).build();
+            return parser.parseSignedClaims(token).getPayload();
         } catch (ExpiredJwtException e) {
             log.error("JWT token expired: {}", e.getMessage());
             throw e;
@@ -63,7 +66,7 @@ public class JwtUtil {
             log.error("Invalid JWT signature: {}", e.getMessage());
             throw e;
         } catch (IllegalArgumentException e) {
-            log.error("JWT token compact of handler are invalid: {}", e.getMessage());
+            log.error("JWT token is null or empty: {}", e.getMessage());
             throw e;
         }
     }
@@ -75,7 +78,7 @@ public class JwtUtil {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         if (userDetails instanceof CustomUserDetails customUserDetails) {
-            claims.put("userId", customUserDetails.getUserId().toString());
+            claims.put(USER_ID_CLAIM, customUserDetails.getUserId().toString());
             claims.put("role", customUserDetails.getRole().name());
         }
         return createToken(claims, userDetails.getUsername(), expiration);
@@ -83,18 +86,21 @@ public class JwtUtil {
 
     public String generateVerificationToken(String email, UUID userId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId.toString());
-        claims.put("type", "verification");
+        claims.put(USER_ID_CLAIM, userId.toString());
+        claims.put(TYPE_CLAIM, "verification");
         return createToken(claims, email, verificationExpiration);
     }
 
     private String createToken(Map<String, Object> claims, String subject, Long tokenExpiration) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + tokenExpiration);
+
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + tokenExpiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -111,7 +117,7 @@ public class JwtUtil {
     public Boolean validateVerificationToken(String token) {
         try {
             Claims claims = extractAllClaims(token);
-            return "verification".equals(claims.get("type")) && !isTokenExpired(token);
+            return "verification".equals(claims.get(TYPE_CLAIM)) && !isTokenExpired(token);
         } catch (Exception e) {
             log.error("Verification token validation failed: {}", e.getMessage());
             return false;
@@ -120,7 +126,7 @@ public class JwtUtil {
 
     public UUID extractUserIdFromToken(String token) {
         try {
-            String userIdString = extractClaim(token, claims -> claims.get("userId", String.class));
+            String userIdString = extractClaim(token, claims -> claims.get(USER_ID_CLAIM, String.class));
             return UUID.fromString(userIdString);
         } catch (Exception e) {
             log.error("Failed to extract user ID from token: {}", e.getMessage());
