@@ -123,7 +123,7 @@ Access the interactive API documentation at: `http://localhost:8080/swagger-ui.h
 - `GET /api/applications/job/{jobId}` - View job applications (Company)
 - `PUT /api/applications/{id}/status` - Update application status (Company)
 
-## 🏗 Project Architecture
+## Project Architecture
 
 ### Modular Monolithic Structure
 ```
@@ -266,8 +266,8 @@ Comprehensive error handling with consistent response format:
 }
 ```
 
-## 👨‍💻 Author
+## Author
 
-**Your Name**
+**Listowel Adolwin Moro**
 - GitHub: [@ListowelAdolwin](https://github.com/ListowelAdolwin)
 - LinkedIn: [Listowel Adolwin Moro](https://www.linkedin.com/in/listowel-adolwin)
