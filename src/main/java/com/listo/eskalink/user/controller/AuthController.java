@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -70,8 +70,7 @@ public class AuthController {
 
     @GetMapping("/me")
     @Operation(summary = "Get Current User", description = "Get current authenticated user information")
-    public ResponseEntity<BaseResponse<UserDto>> getCurrentUser(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ResponseEntity<BaseResponse<UserDto>> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
 
         UserDto userDto = userService.getCurrentUser(userDetails.getUserId());
         BaseResponse<UserDto> response = BaseResponse.success(

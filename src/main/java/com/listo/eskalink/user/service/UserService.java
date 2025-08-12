@@ -48,11 +48,12 @@ public class UserService {
 
         User user = userMapper.signupRequestToUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setVerificationTokenExpiresAt(LocalDateTime.now().plusHours(1));
+        user.setIsVerified(false);
+        userRepository.save(user);
 
         String verificationToken = jwtUtil.generateVerificationToken(request.getEmail(), user.getId());
         user.setVerificationToken(verificationToken);
-        user.setVerificationTokenExpiresAt(LocalDateTime.now().plusHours(1));
-        user.setIsVerified(false);
 
         user = userRepository.save(user);
 
@@ -105,9 +106,9 @@ public class UserService {
         log.info("Processing login request for email: {}", request.getEmail());
 
         try {
-//            Authentication authentication = authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-//            );
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
             String token = jwtUtil.generateToken(userDetails);
