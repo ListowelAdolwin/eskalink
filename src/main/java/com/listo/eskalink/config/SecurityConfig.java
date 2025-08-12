@@ -1,7 +1,6 @@
 package com.listo.eskalink.config;
 
 import com.listo.eskalink.security.JwtAuthenticationEntryPoint;
-
 import com.listo.eskalink.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
